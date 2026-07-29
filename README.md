@@ -84,6 +84,41 @@ Two models were trained on identical data and compared honestly:
 
 Random Forest substantially outperformed Linear Regression, likely because car pricing involves nonlinear interactions (e.g. mileage mattering more for older cars) that a single straight-line formula can't capture. **Random Forest was selected as the final model.**
 
+## Bonus Investigation
+
+### What does the model actually rely on?
+
+Random Forest's feature importance shows a clear hierarchy:
+
+| Feature | Importance |
+|---|---|
+| Present_Price | 0.810 |
+| Car_Age | 0.131 |
+| Driven_kms | 0.029 |
+| Transmission_Manual | 0.007 |
+| Fuel_Type_Diesel | 0.007 |
+| Brand_Toyota | 0.007 |
+| Fuel_Type_Petrol | 0.004 |
+| Brand_Hyundai | 0.004 |
+| Selling_type_Individual | 0.0005 |
+| Brand_Maruti Suzuki | 0.0003 |
+| Owner | 0.0001 |
+
+![Random Forest feature importance](feature_importance.png)
+
+Present_Price and Car_Age alone account for **94.1%** of the model's decision-making. All three Brand columns combined contribute just **1.09%**.
+
+### Does brand actually matter, once price and age are known?
+
+The "brand goodwill" hypothesis was tested directly by re-training the model with all Brand columns removed:
+
+| Model | MAE (lakhs) | R² Score |
+|---|---|---|
+| With Brand | 0.72 | 0.958 |
+| Without Brand | 0.71 | 0.960 |
+
+Removing Brand entirely made no meaningful difference -- if anything, performance was marginally better without it. This suggests brand reputation isn't an independent driver of resale price in this dataset; rather, **Present_Price already indirectly captures brand value**, since a well-regarded brand's cars command a higher showroom price to begin with. The earlier finding that Toyota and Honda sell for more on average wasn't wrong -- it's simply already explained by their higher present prices, not by brand name itself.
+
 ## Results
 
 Using Random Forest, predictions are consistently close to actual prices, most within half a lakh:

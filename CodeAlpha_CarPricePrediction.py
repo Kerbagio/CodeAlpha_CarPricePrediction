@@ -266,3 +266,39 @@ plt.legend()
 plt.tight_layout()
 plt.savefig('predicted_vs_actual.png', dpi=150, bbox_inches='tight')
 plt.show()
+
+
+# --- Which feature does the winning model actually rely on? ---
+importances = pd.DataFrame({
+    'Feature': X.columns,
+    'Importance': rf_model.feature_importances_
+}).sort_values('Importance', ascending=False)
+
+print("\nRandom Forest Feature Importance:")
+print(importances.to_string(index=False))
+
+plt.figure(figsize=(8, 6))
+plt.barh(importances['Feature'], importances['Importance'], color='seagreen')
+plt.xlabel('Importance')
+plt.title('Random Forest Feature Importance')
+plt.gca().invert_yaxis()
+plt.tight_layout()
+plt.savefig('feature_importance.png', dpi=150, bbox_inches='tight')
+plt.show()
+
+# --- Does Brand actually help, once Present_Price/Age are already known? ---
+brand_cols = [col for col in X.columns if col.startswith('Brand_')]
+X_no_brand = X.drop(columns=brand_cols)
+
+X_train_nb, X_test_nb, y_train_nb, y_test_nb = train_test_split(X_no_brand, y, test_size=0.2, random_state=42)
+
+rf_no_brand = RandomForestRegressor(n_estimators=200, random_state=42)
+rf_no_brand.fit(X_train_nb, y_train_nb)
+rf_no_brand_pred = rf_no_brand.predict(X_test_nb).clip(min=0)
+
+rf_no_brand_mae = mean_absolute_error(y_test_nb, rf_no_brand_pred)
+rf_no_brand_r2 = r2_score(y_test_nb, rf_no_brand_pred)
+
+print("\n--- Brand Ablation Test ---")
+print(f"With Brand    -> MAE: {rf_mae:.2f} | R2: {rf_r2:.3f}")
+print(f"Without Brand -> MAE: {rf_no_brand_mae:.2f} | R2: {rf_no_brand_r2:.3f}")
